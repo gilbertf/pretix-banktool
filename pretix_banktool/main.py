@@ -8,6 +8,7 @@ from .config import validate_config
 from .testing import test_fints, test_pretix
 from .enablebanking import EnableBanking
 from .pretix import upload as pretix_upload
+from .pretix import listUploads as pretix_list
 
 @click.group()
 def main():
@@ -46,6 +47,16 @@ def test(configfile, fints, pretix):
     if pretix:
         test_pretix(config)
 
+
+@main.command()
+@click.argument('configfile', type=click.Path(exists=True))
+@click.option('--last', default=1, help='Only show last n bank import on pretix instance')
+@click.option('--transactions/--no-transactions', default=False, help='Show individual transactions')
+def listuploads(configfile, last, transactions):
+    config = configparser.ConfigParser()
+    config.read(configfile)
+    validate_config(config)
+    pretix_list(config, last, transactions)
 
 @main.command()
 @click.argument('configfile', type=click.Path(exists=True))
