@@ -4,7 +4,7 @@ from urllib.parse import urljoin
 import click
 
 
-def validate_config(config):
+def validate_config(config, ignoreSessionIdMissing = False):
     validate_pretix_config(config)
     if 'banktool' not in config:
         click.echo(click.style('Invalid config file: Does not contain banktool section', fg='red'))
@@ -14,9 +14,29 @@ def validate_config(config):
         sys.exit(1)
     if config['banktool']['type'] == 'fints':
         validate_fints_config(config)
+    elif config['banktool']['type'] == 'enablebanking':
+        validate_enablebanking_config(config, ignoreSessionIdMissing)
     else:
         click.echo(click.style('Invalid config file: Unknown type %s' % config['banktool']['type'], fg='red'))
         sys.exit(1)
+
+
+def validate_enablebanking_config(config, ignoreSessionIdMissing):
+    if 'enablebanking' not in config:
+        click.echo(click.style('Invalid config file: Does not contain enablebanking section', fg='red'))
+        sys.exit(1)
+
+    for f in ("keyfile", "applicationid", "aspspname", "aspspcountry", "sessionid"):
+        if f not in config['enablebanking']:
+            if f == "sessionid":
+                if ignoreSessionIdMissing:
+                    continue
+                else:
+                    click.echo(click.style("Please run register command to get a sessionid", fg='red'))
+                    sys.exit(1)
+            else:
+                click.echo(click.style('Invalid config file: Does not contain value for enablebanking.%s' % f, fg='red'))
+                sys.exit(1)
 
 
 def validate_fints_config(config):
