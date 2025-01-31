@@ -38,6 +38,23 @@ def validate_enablebanking_config(config, ignoreSessionIdMissing):
                 click.echo(click.style('Invalid config file: Does not contain value for enablebanking.%s' % f, fg='red'))
                 sys.exit(1)
 
+    lAppId = 36
+    if len(config["enablebanking"]["applicationId"]) != lAppId:
+        click.echo(click.style('Invalid application id length, expected ' + str(lAppId) + ' characters', fg='red'))
+        sys.exit(1)
+
+    sKeyfile = 3271
+    try:
+        with open(config["enablebanking"]["keyfile"], "rb") as f:
+            b = f.read()
+            
+        if len(b) != sKeyfile:
+            click.echo(click.style('Invalid key file size, expected ' + str(sKeyfile) + ' bytes', fg='red'))
+            sys.exit(1)
+    except:
+        click.echo(click.style('Unable to read keyfile', fg='red'))
+        sys.exit(1)
+
 
 def validate_fints_config(config):
     if 'fints' not in config:

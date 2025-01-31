@@ -5,7 +5,7 @@ from requests import RequestException
 import sys
 import json
 
-def upload(config, payload):
+def uploadPayload(config, payload):
     click.echo('Uploading transactions to pretix instance')
     try:
         r = requests.post(get_endpoint(config), headers={

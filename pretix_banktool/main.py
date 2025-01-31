@@ -1,13 +1,12 @@
 import configparser
 from urllib.parse import urljoin
-
+import sys
 import click
-from pretix_banktool.upload import upload_transactions
-
+from .fints import FinTs
 from .config import validate_config
 from .testing import test_fints, test_pretix
 from .enablebanking import EnableBanking
-from .pretix import upload as pretix_upload
+from .pretix import uploadPayload as pretix_upload
 from .pretix import listUploads as pretix_list
 
 @click.group()
@@ -23,11 +22,11 @@ def register(configfile):
     validate_config(config, ignoreSessionIdMissing = True)
     if config["banktool"]["type"] == "enablebanking":
         if "sessionid" in config["enablebanking"]:
-            click.echo(click.style('You already have a sessionid in your config. Running register is not required.', fg='red'))
-            return
+            click.echo(click.style('You already have a sessionid in your config. Running register is not possible.', fg='red'))
+            sys.exit(1)
         click.echo(click.style('Procedure to register bank account to enablebanking service', fg='green'))
-        eb = EnableBanking(config)
-        eb.register(configfile)
+        enableBanking = EnableBanking(config)
+        enableBanking.register(configfile)
     else:
         click.echo(click.style('Register is only neccessary when using enablebanking', fg='red'))
 
@@ -69,18 +68,23 @@ def upload(configfile, days, pending, bank_ids, ignore):
     config = configparser.ConfigParser()
     config.read(configfile)
     validate_config(config)
+
+    payload = None
     if config['banktool']['type'] == 'enablebanking':
         click.echo(click.style('Ignoring all given parameters. Not supported for enable banking at the moment', fg='red'))
         eb = EnableBanking(config)
         payload = eb.getPayload()
-        if payload != None:
-            pretix_upload(config, payload)
+
     elif config['banktool']['type'] == 'fints':
-        upload_transactions(config, days, pending, bank_ids, ignore)
+        finTs = FinTs()
+        payload = finTs.getPayload(config, days, pending, bank_ids, ignore)
+
+    if payload != None:
+        pretix_upload(config, payload)
 
 
 @main.command()
-@click.option('--type', type=click.Choice(['fints', 'enablebanking']), default='fints')
+@click.option('--type', type=click.Choice(['fints', 'enablebanking']), default='')
 def setup(type):
     click.echo(click.style('Welcome to the pretix-banktool setup!', fg='green'))
 
@@ -95,27 +99,15 @@ def setup(type):
         click.echo(click.style('WARNING: If you enter your PIN here, it will be stored in clear text on your disk. '
                                'If you leave it empty, you will instead be asked for it every time.', fg='yellow'))
         pin = click.prompt('Your online-banking PIN', hide_input=True, default='', show_default=False)
+
     elif type == 'enablebanking':
-        click.echo('You will now be prompted all information required to setup a Enable Banking account for pretix.')
+        click.echo('You will now be prompted all information required to setup a \"Enable Banking\" account for pretix.')
+        click.echo('Please visit https://enablebanking.com first and sign up for an account and generate a keyfile')
+        click.echo('The connection to your bank will be configured later using the pretix-banktool register command.')
         click.echo('')
         click.echo(click.style('Enable Banking authentication', fg='blue'))
         keyFile = click.prompt('Path to key file')
         appId = click.prompt('Application id')
-
-        if len(appId) != 36:
-            click.echo(click.style('Invalid application id length, expected 36 characters', fg='red'))
-            return
-        try:
-            f = open(keyFile, "rb")
-            b = f.read()
-            f.close()
-            if len(b) != 3271:
-                click.echo(click.style('Invalid key file, expected 3271 bytes', fg='red'))
-                return
-        except:
-            click.echo(click.style('Unable to read keyfile', fg='red'))
-            return
-        
         click.echo('Please specify your banking details, see https://enablebanking.com/open-banking-apis')
         aspspName = click.prompt('ASPSP Name (e.g. Förde Sparkasse)')
         aspspCountry = click.prompt('ASPSP country code (e.g. DE)')
@@ -132,7 +124,7 @@ def setup(type):
 
     click.echo('')
     click.echo(click.style('Other information', fg='blue'))
-    filename = click.prompt('Configuration file', default=api_organizer + '.cfg', type=click.Path(exists=False))
+    configfile = click.prompt('Configuration file', default=api_organizer + '.cfg', type=click.Path(exists=False))
 
     config = configparser.ConfigParser()
     config['banktool'] = {
@@ -158,8 +150,11 @@ def setup(type):
         'organizer': api_organizer,
         'key': api_key
     }
-    with open(filename, 'w') as configfile:
-        config.write(configfile)
+
+    validate_config(config, ignoreSessionIdMissing=True)
+
+    with open(configfile, 'w') as f:
+        config.write(f)
 
     click.echo('')
     click.echo(click.style('Configuration file created!', fg='green'))
@@ -167,10 +162,11 @@ def setup(type):
     if type == "fints":
         click.echo(click.style('Please note that your pin has been saved to the file in plain text. Make sure to secure '
                            'the file appropriately.', fg='red'))
+        click.echo('')
+        click.echo('You can now run')
+        click.echo('    pretix-banktool test %s' % configfile)
+        click.echo('to test the connection to your bank account.')
     elif type == "enablebanking":
-        register(configfile = configfile, type = "enablebanking")
+        click.echo(click.style('Please run the register command to connect \"Enable Banking\" with your bank account', fg='green'))
 
-    click.echo('')
-    click.echo('You can now run')
-    click.echo('    pretix-banktool test %s' % filename)
-    click.echo('to test the connection to your bank account.')
+

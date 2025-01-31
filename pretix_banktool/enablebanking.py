@@ -158,7 +158,7 @@ class EnableBanking:
         try:
             for d in data:
                 if not "transactions" in d:
-                    print("Missing transactions sections in rtrieved data")
+                    print("Missing transactions sections in retrieved data")
                     continue
                 for e in d["transactions"]:
                     if not "transaction_amount" in e or not "amount" in e["transaction_amount"]:
