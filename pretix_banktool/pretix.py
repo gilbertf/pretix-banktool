@@ -32,16 +32,23 @@ def listUploads(config, last, transactions):
             if i < c - last:
                 continue
             new = 0
+            existing = 0
             names = list()
             if e != None and "transactions" in e:
                 for t in e["transactions"]:
                     if t["state"] == "valid":
                         new += 1
                         names.append(t["payer"])
+                    elif t["state"] == "already":
+                        existing += 1
+                    else:
+                        print("Not implemented. State", t["state"])
                 print("Import", e["id"])
                 print(" "*3, new, "new payments")
+                print(" "*3, existing, "existing payments")
+
                 if transactions and len(names) > 0:
-                    print(" "*3,"Transactions:", ", ".join(names))
+                    print(" "*3,"New payments from:", ", ".join(names))
                 print() #Empty line
             else:
                 print("Invalid dataset", e)
