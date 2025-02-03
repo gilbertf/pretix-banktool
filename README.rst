@@ -4,10 +4,9 @@ pretix-banktool
 This is a command-line tool for `pretix`_ that allows you to automatically query your bank account and sync
 transaction data to a pretix server. This uses an API provided by pretix version 1.5 or newer.
 
-Current limitations:
+This version of the tool supports direct bank communication using the FinTS standard and the Enable Banking service provider.
 
-* Currently limited to banks implementing the FinTS protocol (formerly HBCI), which is mostly availabile with Germany
-  banks.
+Current FinTS limitations:
 
 * Only supports PIN/TAN authentication, no chip cards.
 
@@ -41,9 +40,9 @@ Now you can install the bank tool::
 
     (env)$ pip3 install pretix-banktool
 
-To configure it, run the following command::
+To configure, run the setup command with the banking type "fints" or "enablebanking" as parameter:
 
-    (env)$ pretix-banktool setup
+    (env)$ pretix-banktool setup --type <type>
 
 You will be asked a number of questions on your online banking access as well as for the URL of your pretix
 installation and your API key. The prompt will also tell you how to obtain that API key.
