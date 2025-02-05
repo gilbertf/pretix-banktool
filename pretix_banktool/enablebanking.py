@@ -186,6 +186,9 @@ class EnableBanking:
                         continue
                     date = e["booking_date"]
 
+                    if self.debug:
+                        print(amount, reference, payer_iban, payer_name, date)
+
                     tx = {
                             'amount': amount,
                             'reference': reference,
