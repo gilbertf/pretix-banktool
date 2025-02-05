@@ -161,7 +161,7 @@ class EnableBanking:
                     print("Missing transactions sections in retrieved data")
                     continue
                 for e in d["transactions"]:
-                    if not "transaction_amount" in e or not "amount" in e["transaction_amount"]:
+                    if not "transaction_amount" in e or e["transaction_amount"] == None or not "amount" in e["transaction_amount"]:
                         print("Missing transaction amount in retrieved data")
                         continue
                     amount = e["transaction_amount"]["amount"]
@@ -171,12 +171,12 @@ class EnableBanking:
                         continue
                     reference = ", ".join(e["remittance_information"])
 
-                    if not "debtor_account" in e or not "iban" in e["debtor_account"]:
+                    if not "debtor_account" in e or e["debtor_account"] == None or not "iban" in e["debtor_account"]:
                         print("Missing iban in retrieved data")
                         continue
                     payer_iban = e["debtor_account"]["iban"]
 
-                    if not "debtor" in e or not "name" in e["debtor"]:
+                    if not "debtor" in e or e["debtor"] == None or not "name" in e["debtor"]:
                         print("Missing debtor name in retrieved data")
                         continue
                     payer_name = e["debtor"]["name"]
