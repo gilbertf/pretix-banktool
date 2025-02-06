@@ -33,7 +33,9 @@ def listUploads(config, last, transactions):
                 continue
             new = 0
             existing = 0
+            nomatch = 0
             names = list()
+            unmatched = list()
             if e != None and "transactions" in e:
                 for t in e["transactions"]:
                     if t["state"] == "valid":
@@ -41,14 +43,28 @@ def listUploads(config, last, transactions):
                         names.append(t["payer"])
                     elif t["state"] == "already":
                         existing += 1
+                    elif t["state"] == "nomatch":
+                        unmatched.append(t)
+                        nomatch += 1
                     else:
                         print("Not implemented. State", t["state"])
+
                 print("Import", e["id"])
                 print(" "*3, new, "new payments")
                 print(" "*3, existing, "existing payments")
+                print(" "*3, nomatch, "unmatched payments")
+
 
                 if transactions and len(names) > 0:
                     print(" "*3,"New payments from:", ", ".join(names))
+
+                if len(unmatched) > 0:
+                    print("Unmatched payments:")
+                    for t in unmatched:
+                        print("\tName:", t["payer"])
+                        print("\tReference:", t["reference"])
+                        print("\tAmount:", t["amount"])
+                        print()
                 print() #Empty line
             else:
                 print("Invalid dataset", e)
