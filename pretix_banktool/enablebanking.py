@@ -173,13 +173,15 @@ class EnableBanking:
 
                     if not "debtor_account" in e or e["debtor_account"] == None or not "iban" in e["debtor_account"]:
                         print("Missing iban in retrieved data")
-                        continue
-                    payer_iban = e["debtor_account"]["iban"]
+                        payer_iban = None
+                    else:
+                        payer_iban = e["debtor_account"]["iban"]
 
                     if not "debtor" in e or e["debtor"] == None or not "name" in e["debtor"]:
                         print("Missing debtor name in retrieved data")
-                        continue
-                    payer_name = e["debtor"]["name"]
+                        payer_name = None
+                    else:
+                        payer_name = e["debtor"]["name"]
 
                     if not "booking_date" in e:
                         print("Missing booking_date in retrieved data")
