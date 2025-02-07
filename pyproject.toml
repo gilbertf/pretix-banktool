@@ -21,7 +21,8 @@ dependencies = [
     "fints==4.*,>=4.2.0",
     "requests",
     "mt-940>=4.12",
-    "pyjwt>=2.6"
+    "pyjwt>=2.6",
+    "cryptography>=44.0"
 ]
 dynamic = ["version"]
 
