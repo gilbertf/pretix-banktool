@@ -16,12 +16,13 @@ def main():
 
 @main.command()
 @click.argument('configfile', type=click.Path(exists=True))
-def register(configfile):
+@click.option('--renew/--no-renew', default=False, help='Replace sessionid set in config file')
+def register(configfile, renew):
     config = configparser.ConfigParser()
     config.read(configfile)
     validate_config(config, ignoreSessionIdMissing = True)
     if config["banktool"]["type"] == "enablebanking":
-        if "sessionid" in config["enablebanking"]:
+        if "sessionid" in config["enablebanking"] and not renew:
             click.echo(click.style('You already have a sessionid in your config. Running register is not possible.', fg='red'))
             sys.exit(1)
         click.echo(click.style('Procedure to register bank account to enablebanking service', fg='green'))
